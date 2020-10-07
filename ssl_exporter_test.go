@@ -71,6 +71,11 @@ func TestProbeHandlerHTTPS(t *testing.T) {
 	if !ok {
 		t.Errorf("expected `ssl_tls_version_info{version=\"TLS 1.3\"} 1`")
 	}
+
+	// Check that empty OCSP response is reported
+	if ok := strings.Contains(rr.Body.String(), "ssl_ocsp_response_stapled 0"); !ok {
+		t.Errorf("expected `ssl_ocsp_response_stapled 0`")
+	}
 }
 
 // TestProbeHandlerHTTPSVerifiedChains checks that metrics are generated
@@ -318,6 +323,11 @@ func TestProbeHandlerTCP(t *testing.T) {
 	if err := checkDates(certPEM, rr.Body.String()); err != nil {
 		t.Errorf(err.Error())
 	}
+
+	// Check that empty OCSP response is reported
+	if ok := strings.Contains(rr.Body.String(), "ssl_ocsp_response_stapled 0"); !ok {
+		t.Errorf("expected `ssl_ocsp_response_stapled 0`")
+	}
 }
 
 // TestProbeHandlerTCPOCSP tests a TCP probe with OCSP stapling
@@ -368,6 +378,10 @@ func TestProbeHandlerTCPOCSP(t *testing.T) {
 	parsedResponse, err := ocsp.ParseResponse(resp, nil)
 	if err != nil {
 		t.Fatalf(err.Error())
+	}
+
+	if ok := strings.Contains(rr.Body.String(), "ssl_ocsp_response_stapled 1"); !ok {
+		t.Errorf("expected `ssl_ocsp_response_stapled 1`")
 	}
 
 	status := strconv.Itoa(parsedResponse.Status)
